@@ -1,30 +1,22 @@
-# app/database.py
 import os
-from motor.motor_asyncio import AsyncIOMotorClient
-from dotenv import load_dotenv
-import redis.asyncio as redis
 import ssl
+import redis.asyncio as redis
+from motor.motor_asyncio import AsyncIOMotorClient
 from aiokafka import AIOKafkaProducer
+from dotenv import load_dotenv
 
-# Load environment variables from the .env file
 load_dotenv()
 
+# --- MongoDB Setup ---
 MONGO_URI = os.getenv("MONGO_URI")
-DB_NAME = os.getenv("DB_NAME", "food_delivery")
-
-# Create the async MongoDB client
+DB_NAME = os.getenv("DB_NAME", "order_management")
 client = AsyncIOMotorClient(MONGO_URI)
-
-# Access the specific database
 db = client[DB_NAME]
-
-# Access the 'orders' collection (it will be created automatically upon first insert)
 orders_collection = db["orders"]
 users_collection = db["users"]
 
-# --- NEW: Redis Setup ---
+# --- Redis Setup ---
 REDIS_URI = os.getenv("REDIS_URI")
-# Because we imported redis.asyncio, this now creates an ASYNC client
 redis_client = redis.from_url(REDIS_URI, decode_responses=True)
 
 # --- Aiven Kafka mTLS Setup ---
@@ -39,8 +31,19 @@ def get_kafka_ssl_context():
     )
     return context
 
-kafka_producer = AIOKafkaProducer(
-    bootstrap_servers=os.getenv("KAFKA_BROKER"),
-    security_protocol="SSL",
-    ssl_context=get_kafka_ssl_context()
-)
+# CRITICAL: Start with None. Do not instantiate AIOKafkaProducer here.
+kafka_producer = None
+
+async def init_kafka_producer():
+    global kafka_producer
+    kafka_producer = AIOKafkaProducer(
+        bootstrap_servers=os.getenv("KAFKA_BROKER"),
+        security_protocol="SSL",
+        ssl_context=get_kafka_ssl_context()
+    )
+    await kafka_producer.start()
+
+async def close_kafka_producer():
+    global kafka_producer
+    if kafka_producer:
+        await kafka_producer.stop()

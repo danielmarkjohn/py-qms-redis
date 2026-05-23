@@ -1,39 +1,123 @@
-# Order API 🍔
+# Event-Driven Order Management API
 
-A lightweight, asynchronous CRUD API for managing  orders. This service is built with FastAPI and MongoDB (via Motor), utilizing raw JSON request handling for a zero-boilerplate.
+A high-throughput, asynchronous microservice built with FastAPI. This system implements an event-driven architecture using Kafka for deferred writes (eventual consistency) and Redis for sub-millisecond read caching.
 
-## Project Structure
+## 🏗 Architecture & Tech Stack
 
-```text
-food_order_api/
-├── .env                # Environment variables (MongoDB URI, etc.)
-├── README.md
-├── requirements.txt
-└── app/
-    ├── __init__.py
-    ├── main.py         # Application entry point
-    ├── database.py     # MongoDB async connection logic
-    └── routers/
-        ├── __init__.py
-        └── orders.py   # CRUD routing for food orders
+- **Web Framework:** FastAPI (Python 3.12+)
+- **Database:** MongoDB Atlas (via `motor` async driver)
+- **Cache:** Redis Cloud (via `redis.asyncio`)
+- **Message Broker:** Aiven Kafka (via `aiokafka`)
+- **Task Runner:** `taskipy`
+
+### Data Flow Patterns
+
+- **Reads (`GET`):** Checked against Redis first. On cache miss, fetched from MongoDB and cached for 1 hour.
+- **Writes (`POST`):** Payload is instantly accepted, assigned an ID, and fired into a Kafka topic (`orders.create`). A background consumer processes the topic and persists the data to MongoDB.
+- **Updates/Deletes (`PUT`/`DELETE`):** Synchronously persisted to MongoDB and immediately invalidates the associated Redis cache to prevent stale data.
+
+---
+
+## ⚙️ Local Development Setup
+
+### 1. Prerequisites
+
+- Python 3.12+
+- MongoDB Atlas Cluster
+- Redis Cloud / Upstash instance
+- Aiven Kafka Cluster (with mTLS certificates)
+
+### 2. Install Dependencies
+
+Clone the repository and install the required packages:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+task install
 ```
 
-## Commands
+### 3. Kafka Certificates
 
-### Setup Dependencies
-`python -m venv venv`
+Create a `certs/` directory in the root of the project and place your Aiven mTLS certificates inside. Do not commit these files to version control.
 
-### For Mac/Linux:
-`source venv/bin/activate`
+```
+certs/
+  ├── ca.pem
+  ├── service.cert
+  └── service.key
+```
 
-### For Windows:
-`venv\Scripts\activate`
+### 4. Environment Variables
 
-### Install
-`task install`
+Create a `.env` file in the root directory:
 
-### Run Server
-`task dev`
-#### The server will be live at: http://127.0.0.1:8000
+```env
+# Database
+MONGO_URI="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority"
+DB_NAME="order_management"
 
+# Cache
+REDIS_URI="redis://default:<password>@<host>:<port>"
 
+# Kafka
+KAFKA_BROKER="<host>:<port>"
+KAFKA_CA_PATH="certs/ca.pem"
+KAFKA_CERT_PATH="certs/service.cert"
+KAFKA_KEY_PATH="certs/service.key"
+```
+
+---
+
+## 🚀 Running the Application
+
+Because this is a decoupled architecture, you must run both the API server and the background worker concurrently.
+
+**Terminal 1 — Start the Web Server:**
+
+```bash
+task dev
+```
+
+**Terminal 2 — Start the Kafka Consumer:**
+
+```bash
+task worker
+```
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Description | Cache Behavior |
+|--------|----------|-------------|----------------|
+| `POST` | `/orders/` | Create a new order (Async) | N/A (Fires Kafka Event) |
+| `GET` | `/orders/` | List all orders | Direct Mongo read |
+| `GET` | `/orders/{id}` | Get specific order | Cached (Redis) |
+| `PUT` | `/orders/{id}` | Update order status | Invalidates Cache |
+| `DELETE` | `/orders/{id}` | Delete order | Invalidates Cache |
+
+### Sample Payload (Create Order)
+
+```json
+{
+  "product_id": "macbook-pro-16",
+  "customer_id": "59b99db4cfa9a34dcd7885b6",
+  "amount": 2499.99
+}
+```
+
+---
+
+## ☁️ Deployment (Render)
+
+This system requires two separate Render services operating from the same repository:
+
+**Web Service**
+- Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+**Background Worker**
+- Start Command: `python -m app.workers.order_consumer`
+
+**Secret Management:**
+Upload `ca.pem`, `service.cert`, and `service.key` as Render Secret Files (mapped to `/etc/secrets/`) and update the respective environment variables in the Render dashboard.
