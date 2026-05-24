@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.routers.orders import router as orders_router
+from app.routers.catalog import router as catalog_router
 from app.database import init_kafka_producer, close_kafka_producer # <-- Import the new functions
 
 @asynccontextmanager
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Order Management API", lifespan=lifespan)
 
 app.include_router(orders_router)
+app.include_router(catalog_router)
 
 @app.get("/")
 async def root():
