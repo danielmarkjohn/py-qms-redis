@@ -14,6 +14,7 @@ client = AsyncIOMotorClient(MONGO_URI)
 db = client[DB_NAME]
 orders_collection = db["orders"]
 users_collection = db["users"]
+catalogue_collection = db["catalogue"]
 
 # --- Redis Setup ---
 REDIS_URI = os.getenv("REDIS_URI")

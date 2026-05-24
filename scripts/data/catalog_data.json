@@ -1,0 +1,322 @@
+[
+  {
+    "product_id": "macbook-pro-16",
+    "name": "MacBook Pro 16-inch (M3 Max)",
+    "category": "Electronics",
+    "price": 2499.99,
+    "stock": 45,
+    "vendor": "Apple Store Official"
+  },
+  {
+    "product_id": "sony-wh1000xm5",
+    "name": "Sony WH-1000XM5 Headphones",
+    "category": "Electronics",
+    "price": 348.00,
+    "stock": 120,
+    "vendor": "Sony Electronics"
+  },
+  {
+    "product_id": "logitech-mx-master-3s",
+    "name": "Logitech MX Master 3S Wireless Mouse",
+    "category": "Electronics",
+    "price": 99.99,
+    "stock": 200,
+    "vendor": "Croma"
+  },
+  {
+    "product_id": "samsung-odyssey-g9",
+    "name": "Samsung Odyssey G9 49\" Monitor",
+    "category": "Electronics",
+    "price": 1299.99,
+    "stock": 15,
+    "vendor": "Samsung Store"
+  },
+  {
+    "product_id": "keychron-k2-v2",
+    "name": "Keychron K2 Wireless Mechanical Keyboard",
+    "category": "Electronics",
+    "price": 79.99,
+    "stock": 85,
+    "vendor": "Meckeys"
+  },
+  {
+    "product_id": "meghana-chicken-biryani",
+    "name": "Chicken Boneless Biryani",
+    "category": "Food",
+    "price": 350.00,
+    "stock": 50,
+    "vendor": "Meghana Foods"
+  },
+  {
+    "product_id": "rameshwaram-ghee-idli",
+    "name": "Ghee Pudi Idli (2 Pcs)",
+    "category": "Food",
+    "price": 85.00,
+    "stock": 300,
+    "vendor": "The Rameshwaram Cafe"
+  },
+  {
+    "product_id": "truffles-all-american",
+    "name": "All American Cheese Burger",
+    "category": "Food",
+    "price": 280.00,
+    "stock": 100,
+    "vendor": "Truffles"
+  },
+  {
+    "product_id": "corner-house-dbc",
+    "name": "Death By Chocolate Sundae",
+    "category": "Food",
+    "price": 250.00,
+    "stock": 40,
+    "vendor": "Corner House"
+  },
+  {
+    "product_id": "brahmins-filter-coffee",
+    "name": "Filter Coffee",
+    "category": "Food",
+    "price": 20.00,
+    "stock": 500,
+    "vendor": "Brahmins Coffee Bar"
+  },
+  {
+    "product_id": "dolo-650-strip",
+    "name": "Dolo 650 Tablet (15's)",
+    "category": "Medicine",
+    "price": 30.00,
+    "stock": 1000,
+    "vendor": "Apollo Pharmacy"
+  },
+  {
+    "product_id": "volini-spray-100g",
+    "name": "Volini Pain Relief Spray",
+    "category": "Medicine",
+    "price": 210.00,
+    "stock": 150,
+    "vendor": "Apollo Pharmacy"
+  },
+  {
+    "product_id": "cetaphil-cleanser-250ml",
+    "name": "Cetaphil Gentle Skin Cleanser",
+    "category": "Medicine",
+    "price": 350.00,
+    "stock": 80,
+    "vendor": "MedPlus"
+  },
+  {
+    "product_id": "benadryl-syrup",
+    "name": "Benadryl Cough Syrup 150ml",
+    "category": "Medicine",
+    "price": 120.00,
+    "stock": 200,
+    "vendor": "Netmeds"
+  },
+  {
+    "product_id": "digene-tablets",
+    "name": "Digene Antacid Tablets (15's)",
+    "category": "Medicine",
+    "price": 25.00,
+    "stock": 400,
+    "vendor": "Pharmeasy"
+  },
+  {
+    "product_id": "colgate-total-200g",
+    "name": "Colgate Total Advanced Toothpaste",
+    "category": "Toiletries",
+    "price": 180.00,
+    "stock": 300,
+    "vendor": "Star Bazaar"
+  },
+  {
+    "product_id": "dove-shampoo-340ml",
+    "name": "Dove Daily Shine Shampoo",
+    "category": "Toiletries",
+    "price": 240.00,
+    "stock": 250,
+    "vendor": "Star Bazaar"
+  },
+  {
+    "product_id": "gillette-mach3-blades",
+    "name": "Gillette Mach3 Refill Cartridges (4 Pcs)",
+    "category": "Toiletries",
+    "price": 450.00,
+    "stock": 100,
+    "vendor": "More Supermarket"
+  },
+  {
+    "product_id": "nivea-men-deodorant",
+    "name": "Nivea Men Fresh Active Deodorant",
+    "category": "Toiletries",
+    "price": 199.00,
+    "stock": 180,
+    "vendor": "Spar Hypermarket"
+  },
+  {
+    "product_id": "dettol-liquid-handwash",
+    "name": "Dettol Liquid Handwash Refill 1500ml",
+    "category": "Toiletries",
+    "price": 175.00,
+    "stock": 220,
+    "vendor": "Blinkit"
+ },
+  {
+    "product_id": "empire-ghee-rice",
+    "name": "Ghee Rice with Chicken Kebab",
+    "category": "Food",
+    "price": 220.00,
+    "stock": 80,
+    "vendor": "Empire Restaurant"
+  },
+  {
+    "product_id": "mtr-masala-dosa",
+    "name": "MTR Special Masala Dosa",
+    "category": "Food",
+    "price": 110.00,
+    "stock": 150,
+    "vendor": "Mavalli Tiffin Room (MTR)"
+  },
+  {
+    "product_id": "nandini-milk-1l",
+    "name": "Nandini Good Life Toned Milk (1L)",
+    "category": "Food",
+    "price": 54.00,
+    "stock": 500,
+    "vendor": "Nandini Milk Parlour"
+  },
+  {
+    "product_id": "aashirvaad-atta-5kg",
+    "name": "Aashirvaad Superior MP Sharbati Atta 5kg",
+    "category": "Food",
+    "price": 285.00,
+    "stock": 200,
+    "vendor": "Star Bazaar"
+  },
+  {
+    "product_id": "lays-magic-masala-90g",
+    "name": "Lay's India's Magic Masala Potato Chips (90g)",
+    "category": "Food",
+    "price": 30.00,
+    "stock": 450,
+    "vendor": "Blinkit"
+  },
+  {
+    "product_id": "razer-deathadder-v3-pro",
+    "name": "Razer DeathAdder V3 Pro Wireless Gaming Mouse",
+    "category": "Electronics",
+    "price": 149.99,
+    "stock": 25,
+    "vendor": "MvpGaming"
+  },
+  {
+    "product_id": "asus-rog-rtx-4090",
+    "name": "ASUS ROG Strix GeForce RTX 4090",
+    "category": "Electronics",
+    "price": 1999.99,
+    "stock": 5,
+    "vendor": "Vedant Computers"
+  },
+  {
+    "product_id": "apple-ipad-pro-13-m4",
+    "name": "Apple iPad Pro 13-inch (M4 Chip)",
+    "category": "Electronics",
+    "price": 1299.00,
+    "stock": 35,
+    "vendor": "Apple Store Official"
+  },
+  {
+    "product_id": "sony-ps5-dualsense",
+    "name": "Sony PlayStation 5 DualSense Wireless Controller",
+    "category": "Electronics",
+    "price": 69.99,
+    "stock": 150,
+    "vendor": "Sony Electronics"
+  },
+  {
+    "product_id": "samsung-t7-shield-2tb",
+    "name": "Samsung T7 Shield 2TB Portable SSD",
+    "category": "Electronics",
+    "price": 159.99,
+    "stock": 60,
+    "vendor": "Samsung Store"
+  },
+  {
+    "product_id": "vicks-vaporub-50g",
+    "name": "Vicks Vaporub 50g",
+    "category": "Medicine",
+    "price": 145.00,
+    "stock": 300,
+    "vendor": "Apollo Pharmacy"
+  },
+  {
+    "product_id": "eno-lemon-sachet-6s",
+    "name": "Eno Fruit Salt Lemon (Pack of 6 Sachets)",
+    "category": "Medicine",
+    "price": 60.00,
+    "stock": 400,
+    "vendor": "MedPlus"
+  },
+  {
+    "product_id": "band-aid-waterproof-20s",
+    "name": "Band-Aid Washable Waterproof Strips (20's)",
+    "category": "Medicine",
+    "price": 80.00,
+    "stock": 250,
+    "vendor": "Pharmeasy"
+  },
+  {
+    "product_id": "pudin-hara-10s",
+    "name": "Dabur Pudin Hara Pearls (10's)",
+    "category": "Medicine",
+    "price": 25.00,
+    "stock": 600,
+    "vendor": "Apollo Pharmacy"
+  },
+  {
+    "product_id": "ors-apple-drink-200ml",
+    "name": "Electral ORS Ready to Drink Apple Flavor (200ml)",
+    "category": "Medicine",
+    "price": 35.00,
+    "stock": 350,
+    "vendor": "Netmeds"
+  },
+  {
+    "product_id": "old-spice-after-shave-100ml",
+    "name": "Old Spice Original After Shave Lotion 100ml",
+    "category": "Toiletries",
+    "price": 290.00,
+    "stock": 120,
+    "vendor": "Spar Hypermarket"
+  },
+  {
+    "product_id": "sensodyne-repair-protect-100g",
+    "name": "Sensodyne Repair & Protect Toothpaste 100g",
+    "category": "Toiletries",
+    "price": 220.00,
+    "stock": 200,
+    "vendor": "More Supermarket"
+  },
+  {
+    "product_id": "bombay-shaving-razor-kit",
+    "name": "Bombay Shaving Company Premium Shaving Kit",
+    "category": "Toiletries",
+    "price": 650.00,
+    "stock": 45,
+    "vendor": "Blinkit"
+  },
+  {
+    "product_id": "loreal-hyaluronic-serum-30ml",
+    "name": "L'Oreal Paris Revitalift Hyaluronic Acid Serum 30ml",
+    "category": "Toiletries",
+    "price": 799.00,
+    "stock": 75,
+    "vendor": "Nykaa"
+  },
+  {
+    "product_id": "listerine-cool-mint-250ml",
+    "name": "Listerine Cool Mint Mouthwash 250ml",
+    "category": "Toiletries",
+    "price": 170.00,
+    "stock": 180,
+    "vendor": "Star Bazaar"
+  }
+]

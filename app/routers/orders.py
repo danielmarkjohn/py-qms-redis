@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException
 from bson import ObjectId
-import json
-from app import database # Clean import
+from app import database
+from app.utils.services import CacheService, EventPublisher
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
@@ -10,56 +10,95 @@ def serialize_mongo_doc(doc: dict) -> dict:
         doc["_id"] = str(doc["_id"])
     return doc
 
+# --- VALIDATORS ---
 async def verify_user_exists(customer_id: str):
     if not customer_id or not ObjectId.is_valid(customer_id):
         raise HTTPException(status_code=400, detail="Invalid or missing customer_id format")
         
     user = await database.users_collection.find_one({"_id": ObjectId(customer_id)})
     if not user:
-        raise HTTPException(status_code=404, detail=f"User with ID {customer_id} does not exist")
+        raise HTTPException(status_code=404, detail=f"User {customer_id} does not exist")
 
-# --- CREATE (Publishes to Kafka) ---
+async def get_and_verify_product(product_id: str, quantity: int) -> dict:
+    if not product_id:
+        raise HTTPException(status_code=400, detail="Missing product_id")
+        
+    product = await database.db["catalogue"].find_one({"product_id": product_id})
+    if not product:
+        raise HTTPException(status_code=404, detail=f"Product '{product_id}' not found in catalogue")
+        
+    if product.get("stock", 0) < quantity:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Insufficient stock for '{product_id}'. Available: {product.get('stock', 0)}"
+        )
+        
+    return product
+
+# --- CREATE (Publishes to Kafka via Service) ---
 @router.post("/", status_code=202)
 async def create_order(request: Request):
     order_data = await request.json()
     
+    quantity = int(order_data.get("quantity", 1))
+    product_id = order_data.get("product_id")
     customer_id = order_data.get("customer_id")
+    
+    # 1. Run validations
     await verify_user_exists(customer_id)
+    product = await get_and_verify_product(product_id, quantity)
     
-    new_order_id = str(ObjectId())
-    order_data["_id"] = new_order_id
-    order_data["status"] = "processing"
+    # 2. Calculate the secure amount server-side
+    total_amount = product.get("price", 0.0) * quantity
     
-    event_payload = {
-        "event_type": "CreateOrder",
-        "order_data": order_data
-    }
-    
-    await database.kafka_producer.send_and_wait(
-        topic="orders.create",
-        value=json.dumps(event_payload).encode("utf-8")
+    # 3. Atomically deduct stock from the catalog to prevent overselling
+    await database.db["catalogue"].update_one(
+        {"product_id": product_id},
+        {"$inc": {"stock": -quantity}}
     )
     
-    return {"status": "accepted", "message": "Order is being processed", "order_id": new_order_id}
+    # 4. Finalize order payload
+    new_order_id = str(ObjectId())
+    order_data["_id"] = new_order_id
+    order_data["amount"] = total_amount  # Set secure amount
+    order_data["status"] = "processing"
+    
+    # Use standard Event Publisher
+    await EventPublisher.publish(
+        topic="orders.create",
+        event_type="CreateOrder",
+        payload=order_data
+    )
+    
+    return {
+        "status": "accepted", 
+        "message": "Order is being processed", 
+        "order_id": new_order_id,
+        "calculated_amount": total_amount
+    }
 
-# --- READ SINGLE (Uses Redis) ---
+# --- READ SINGLE (Uses Redis via Service) ---
 @router.get("/{order_id}")
 async def get_order(order_id: str):
     if not ObjectId.is_valid(order_id):
         raise HTTPException(status_code=400, detail="Invalid Order ID format")
     
     redis_key = f"order:{order_id}"
-    cached_order = await database.redis_client.get(redis_key)
     
+    # Check cache via Service
+    cached_order = await CacheService.get_json(redis_key)
     if cached_order:
-        return {"status": "success", "data": json.loads(cached_order), "source": "cache"}
+        return {"status": "success", "data": cached_order, "source": "cache"}
         
+    # Fallback to DB
     order = await database.orders_collection.find_one({"_id": ObjectId(order_id)})
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
         
     serialized_order = serialize_mongo_doc(order)
-    await database.redis_client.setex(redis_key, 3600, json.dumps(serialized_order))
+    
+    # Update cache via Service
+    await CacheService.set_json(redis_key, serialized_order)
     
     return {"status": "success", "data": serialized_order, "source": "mongodb"}
 
@@ -80,6 +119,8 @@ async def update_order(order_id: str, request: Request):
     
     if "customer_id" in update_data:
         await verify_user_exists(update_data["customer_id"])
+    if "product_id" in update_data:
+        await verify_product_exists(update_data["product_id"])
     
     result = await database.orders_collection.update_one(
         {"_id": ObjectId(order_id)}, 
@@ -89,7 +130,9 @@ async def update_order(order_id: str, request: Request):
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
         
-    await database.redis_client.delete(f"order:{order_id}")
+    # Invalidate cache via Service
+    await CacheService.invalidate(f"order:{order_id}")
+    
     return {"status": "success", "message": "Order updated"}
 
 # --- DELETE ---
@@ -103,5 +146,7 @@ async def delete_order(order_id: str):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
         
-    await database.redis_client.delete(f"order:{order_id}")
+    # Invalidate cache via Service
+    await CacheService.invalidate(f"order:{order_id}")
+    
     return {"status": "success", "message": "Order deleted"}
