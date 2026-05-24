@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, HTTPException
 from bson import ObjectId
 from app import database
 from app.utils.services import CacheService, EventPublisher
+import random
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
@@ -36,6 +37,8 @@ async def get_and_verify_product(product_id: str, quantity: int) -> dict:
     return product
 
 # --- CREATE (Publishes to Kafka via Service) ---
+
+# --- Updated CREATE logic ---
 @router.post("/", status_code=202)
 async def create_order(request: Request):
     order_data = await request.json()
@@ -44,37 +47,37 @@ async def create_order(request: Request):
     product_id = order_data.get("product_id")
     customer_id = order_data.get("customer_id")
     
-    # 1. Run validations
+    # 1. Validations
     await verify_user_exists(customer_id)
     product = await get_and_verify_product(product_id, quantity)
     
-    # 2. Calculate the secure amount server-side
+    # 2. Secure Data Generation
     total_amount = product.get("price", 0.0) * quantity
     
-    # 3. Atomically deduct stock from the catalog to prevent overselling
+    # Generate tracking number: TRK- followed by 6 random digits
+    tracking_no = f"TRK-{random.randint(100000, 999999)}"
+    
+    # 3. Deduct Stock
     await database.db["catalogue"].update_one(
         {"product_id": product_id},
         {"$inc": {"stock": -quantity}}
     )
     
-    # 4. Finalize order payload
+    # 4. Finalize payload
     new_order_id = str(ObjectId())
-    order_data["_id"] = new_order_id
-    order_data["amount"] = total_amount  # Set secure amount
-    order_data["status"] = "processing"
+    order_data.update({
+        "_id": new_order_id,
+        "amount": total_amount,
+        "status": "processing",      # Initial state
+        "tracking_number": tracking_no # New field
+    })
     
-    # Use standard Event Publisher
-    await EventPublisher.publish(
-        topic="orders.create",
-        event_type="CreateOrder",
-        payload=order_data
-    )
+    await EventPublisher.publish("orders.create", "CreateOrder", order_data)
     
     return {
         "status": "accepted", 
-        "message": "Order is being processed", 
         "order_id": new_order_id,
-        "calculated_amount": total_amount
+        "tracking_number": tracking_no
     }
 
 # --- READ SINGLE (Uses Redis via Service) ---
@@ -117,10 +120,17 @@ async def update_order(order_id: str, request: Request):
         
     update_data = await request.json()
     
+    # Strictly validate allowed statuses
+    ALLOWED_STATUSES = ["processing", "shipped", "delivered", "cancelled"]
+    if "status" in update_data and update_data["status"] not in ALLOWED_STATUSES:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid status. Allowed values: {', '.join(ALLOWED_STATUSES)}"
+        )
     if "customer_id" in update_data:
         await verify_user_exists(update_data["customer_id"])
     if "product_id" in update_data:
-        await verify_product_exists(update_data["product_id"])
+        await get_and_verify_product(update_data["product_id"])
     
     result = await database.orders_collection.update_one(
         {"_id": ObjectId(order_id)}, 
