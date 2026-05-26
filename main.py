@@ -69,7 +69,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Order Management API",
+    title="QMS Order Management API",
+    description="Order Management API",
+    version="1.0.0", # <--- UPDATE THIS NUMBER ON EVERY RELEASE
     lifespan=lifespan,
 )
 

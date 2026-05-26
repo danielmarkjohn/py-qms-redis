@@ -36,40 +36,40 @@ async def get_and_verify_product(product_id: str, quantity: int) -> dict:
         
     return product
 
-# --- CREATE (Publishes to Kafka via Service) ---
 
-# --- Updated CREATE logic ---
+# --- CREATE (Publishes to Kafka via Service) ---
 @router.post("/", status_code=202)
 async def create_order(request: Request):
     order_data = await request.json()
     
     quantity = int(order_data.get("quantity", 1))
     product_id = order_data.get("product_id")
-    customer_id = order_data.get("customer_id")
     
-    # 1. Validations
+    # 1. SECURE EXTRACTION: Pull customer_id directly from the JWT token middleware
+    customer_id = request.state.user["sub"]
+    
+    # 2. Validations
     await verify_user_exists(customer_id)
     product = await get_and_verify_product(product_id, quantity)
     
-    # 2. Secure Data Generation
+    # 3. Secure Data Generation
     total_amount = product.get("price", 0.0) * quantity
-    
-    # Generate tracking number: TRK- followed by 6 random digits
     tracking_no = f"TRK-{random.randint(100000, 999999)}"
     
-    # 3. Deduct Stock
+    # 4. Deduct Stock
     await database.db["catalogue"].update_one(
         {"product_id": product_id},
         {"$inc": {"stock": -quantity}}
     )
     
-    # 4. Finalize payload
+    # 5. Finalize payload
     new_order_id = str(ObjectId())
     order_data.update({
         "_id": new_order_id,
+        "customer_id": customer_id,  # Hardcode the verified ID into the payload
         "amount": total_amount,
-        "status": "processing",      # Initial state
-        "tracking_number": tracking_no # New field
+        "status": "processing",      
+        "tracking_number": tracking_no 
     })
     
     await EventPublisher.publish("orders.create", "CreateOrder", order_data)
@@ -105,11 +105,16 @@ async def get_order(order_id: str):
     
     return {"status": "success", "data": serialized_order, "source": "mongodb"}
 
-# --- READ ALL ---
+# --- READ ALL (Now specific to the logged-in user) ---
 @router.get("/")
-async def get_all_orders():
-    cursor = database.orders_collection.find({})
+async def get_all_orders(request: Request):
+    # SECURE EXTRACTION: Get the ID of the person making the request
+    customer_id = request.state.user["sub"]
+    
+    # Filter the database search so they only see THEIR orders
+    cursor = database.orders_collection.find({"customer_id": customer_id})
     orders = await cursor.to_list(length=100)
+    
     return {"status": "success", "data": [serialize_mongo_doc(order) for order in orders]}
 
 # --- UPDATE ---
@@ -130,7 +135,8 @@ async def update_order(order_id: str, request: Request):
     if "customer_id" in update_data:
         await verify_user_exists(update_data["customer_id"])
     if "product_id" in update_data:
-        await get_and_verify_product(update_data["product_id"])
+        # Fixed bug: get_and_verify_product requires quantity. Passing 0 bypasses stock check for updates.
+        await get_and_verify_product(update_data["product_id"], 0)
     
     result = await database.orders_collection.update_one(
         {"_id": ObjectId(order_id)}, 
