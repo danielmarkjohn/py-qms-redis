@@ -9,12 +9,16 @@ A high-throughput, asynchronous microservice built with FastAPI. This system imp
 - **Cache:** Redis Cloud (via `redis.asyncio`)
 - **Message Broker:** Aiven Kafka (via `aiokafka`)
 - **Task Runner:** `taskipy`
+- **AI / LLM Engine:** Groq API (Llama-3.1-8b-instant)
+- **Security:** Stateless JWT Authentication Middleware
 
 ### Data Flow Patterns
 
 - **Reads (`GET`):** Checked against Redis first. On cache miss, fetched from MongoDB and cached for 1 hour.
 - **Writes (`POST`):** Payload is instantly accepted, assigned an ID, and fired into a Kafka topic (`orders.create`). A background consumer processes the topic and persists the data to MongoDB.
 - **Updates/Deletes (`PUT`/`DELETE`):** Synchronously persisted to MongoDB and immediately invalidates the associated Redis cache to prevent stale data.
+- **Agentic RAG (`POST /chat`):** User queries are processed by Llama 3.1. If the LLM detects an order-related question, it securely executes a Python tool (`query_orders`) to fetch the user's specific database records, augmenting its natural language response with real-time data.
+- **Zero-Trust JWT:** The `customer_id` is never trusted from the client payload. It is mathematically verified and extracted directly from the user's JWT token via FastAPI's request state middleware.
 
 ---
 
@@ -26,6 +30,7 @@ A high-throughput, asynchronous microservice built with FastAPI. This system imp
 - MongoDB Atlas Cluster
 - Redis Cloud / Upstash instance
 - Aiven Kafka Cluster (with mTLS certificates)
+- Groq API Account (for AI features)
 
 ### 2. Install Dependencies
 
@@ -96,6 +101,7 @@ task worker
 | `GET` | `/orders/{id}` | Get specific order | Cached (Redis) |
 | `PUT` | `/orders/{id}` | Update order status | Invalidates Cache |
 | `DELETE` | `/orders/{id}` | Delete order | Invalidates Cache |
+| `POST` | `/chat/Query Orders` | FAQ Agentic RAG | Dynamic Tool Calling |
 
 ### Sample Payload (Create Order)
 
