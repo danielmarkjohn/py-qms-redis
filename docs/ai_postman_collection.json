@@ -1,0 +1,88 @@
+{
+    "info": {
+        "name": "QMS AI Assistant API",
+        "description": "Agentic RAG Chat API powered by Groq Llama 3 for the Order Management System.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://127.0.0.1:8000",
+            "type": "string"
+        },
+        {
+            "key": "jwt_token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "AI Chat API (Protected)",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{jwt_token}}",
+                        "type": "string"
+                    }
+                ]
+            },
+            "item": [
+                {
+                    "name": "Chat: Order Query (Triggers DB Tool)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"message\": \"Hey, can you tell me the status of the orders I just placed?\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/chat/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                ""
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Chat: General FAQ (No DB Tool)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"message\": \"What is your return policy?\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/chat/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                ""
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

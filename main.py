@@ -11,6 +11,7 @@ from app.routers.orders import router as orders_router
 from app.routers.catalog import router as catalog_router
 from app.routers.general import router as general_router
 from app.routers.auth import router as auth_router  # <-- NEW AUTH ROUTER
+from app.routers.chat import router as chat_router
 
 from app.database import (
     init_kafka_producer,
@@ -97,6 +98,7 @@ app.include_router(general_router)
 app.include_router(auth_router)  # <-- REGISTER AUTH ROUTER
 app.include_router(orders_router)
 app.include_router(catalog_router)
+app.include_router(chat_router)
 
 
 @app.get("/")
