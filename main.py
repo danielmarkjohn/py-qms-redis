@@ -17,6 +17,7 @@ from app.database import (
     init_kafka_producer,
     close_kafka_producer,
 )
+from app.config.config import origins
 
 # Secret key for JWT signing
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-qms-key-change-me")
@@ -76,12 +77,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS CONFIG
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -104,5 +99,5 @@ app.include_router(chat_router)
 @app.get("/")
 async def root():
     return {
-        "message": "Order Management Service is running securely"
+        "message": "Service is running securely"
     }
